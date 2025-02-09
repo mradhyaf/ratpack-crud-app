@@ -2,9 +2,13 @@ import db.Database;
 import db.DatabaseException;
 import file.FileException;
 import file.FileManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ratpack.core.server.RatpackServer;
 
 public class Main {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
   public static void main(String[] args) {
     try {

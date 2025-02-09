@@ -1,10 +1,14 @@
 package file;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ratpack.core.service.Service;
+import ratpack.core.service.StopEvent;
 
 /**
  * A FileManager manages a directory and all the files contained within. This includes creating and
@@ -13,69 +17,137 @@ import ratpack.core.service.Service;
  */
 public class FileManager implements Service {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(FileManager.class);
+
   private final Path root;
 
   public FileManager(String path) throws FileException {
     root = Paths.get(path);
-    System.out.println("creating a file store in " + root.toAbsolutePath());
+
     try {
+      LOGGER.debug("creating a file store in {}", root.toAbsolutePath());
       Files.createDirectories(root);
     } catch (IOException e) {
-      System.out.println(e.getMessage());
+      LOGGER.error(e.getMessage());
       throw new FileException("unable to create directories for file store");
     }
+
     if (!Files.isReadable(root) || !Files.isWritable(root)) {
-      throw new FileException("filestore has insufficient permissions");
+      throw new FileException("file manager has insufficient permissions");
     }
   }
 
-  public boolean createFile(String name, byte[] bytes) {
+  @Override
+  public void onStop(StopEvent event) throws Exception {
+    try (DirectoryStream<Path> dir = Files.newDirectoryStream(root)) {
+      dir.forEach(path -> {
+        try {
+          Files.deleteIfExists(path);
+        } catch (IOException e) {
+          LOGGER.error("fail to cleanup files");
+        }
+      });
+      Files.deleteIfExists(root);
+    } catch (Exception e) {
+      LOGGER.error("fail to cleanup dir");
+      throw new FileException("unable to cleanup files");
+    }
+  }
+
+  /**
+   *
+   * @param name name of the file to create.
+   * @param bytes byte array of the file contents.
+   * @return {@link FileInfo} describing the created file.
+   */
+  public FileInfo createFile(String name, byte[] bytes) {
     Path filepath = root.resolve(name);
     if (Files.exists(filepath)) {
       // Possible extension: assign another name in case of a name clash.
-      return false;
+      LOGGER.debug("file {} already exists", name);
+      return null;
     }
 
     try {
       Files.createFile(filepath);
       Files.write(filepath, bytes);
+      LOGGER.info("created file {}", name);
     } catch (IOException e) {
-      System.out.println("filestore unable to create file");
-      return false;
+      LOGGER.error("unable to create file {}", name);
+      return null;
     }
 
-    return true;
+    return extractFileInfo(filepath);
   }
 
+  /**
+   *
+   * @param name name of the file to retrieve.
+   * @return {@link Path} of the file if it exists, {@literal null} otherwise.
+   */
+  public Path getFile(String name) {
+    Path path = root.resolve(name);
+
+    if (Files.notExists(path)) {
+      LOGGER.debug("file {} does not exist", name);
+      return null;
+    }
+
+    return path;
+  }
+
+  /**
+   *
+   * @param name name of the file to delete.
+   * @return {@literal true} if the deletion is successful, {@literal false} otherwise.
+   */
   public boolean removeFile(String name) {
     Path filepath = root.resolve(name);
 
     try {
       Files.deleteIfExists(filepath);
+      LOGGER.info("deleted (if existed) file {}", filepath);
     } catch (IOException e) {
-      System.out.println("filestore unable to delete file");
+      LOGGER.warn("unable to delete file {}", filepath);
       return false;
     }
 
     return true;
   }
 
-  public FileInfo extractFileInfo(String filename) {
-    Path filepath = root.resolve(filename);
-    if (Files.notExists(filepath)) {
-      return null;
-    }
-
+  private FileInfo extractFileInfo(Path filepath) {
     FileInfo info = new FileInfo();
-    info.name = filename;
+    info.name = filepath.getFileName().toString();
 
     try {
-      info.type = Files.probeContentType(filepath);
+      info.type = getFileType(filepath);
+      info.category = getFileCategory(filepath);
     } catch (Exception e) {
-      System.out.println("filestore unable to complete file info extraction");
+      LOGGER.warn("unable to complete file info extraction");
     }
 
     return info;
+  }
+
+  private static String getFileType(Path filepath) {
+    // TODO: implement
+    return "unknown";
+//    return Files.probeContentType(filepath);
+  }
+
+  private static String getFileCategory(Path filepath) {
+    // TODO: implement
+    return "others";
+//    switch (filetype) {
+//      case "mp3":
+//        return "music";
+//      case "mkv":
+//        return "videos";
+//      case "png":
+//        return "pictures";
+//      default:
+//        return "others";
+//    }
   }
 
 }
