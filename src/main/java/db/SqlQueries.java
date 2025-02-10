@@ -1,5 +1,7 @@
 package db;
 
+import file.FileInfo;
+
 public class SqlQueries {
 
   public static final String CREATE_TABLE =
@@ -47,4 +49,20 @@ public class SqlQueries {
    */
   public static final String DELETE_FILE_BY_NAME =
       "DELETE FROM files WHERE name = ?;";
+
+  public static String selectFileWhere(FileInfo filters) {
+    StringBuilder sb = new StringBuilder("SELECT * FROM files WHERE ");
+    if (filters.name != null) {
+      sb.append("WHERE name LIKE %").append(filters.name).append("% ");
+    }
+    if (filters.type != null) {
+      sb.append("WHERE type = '").append(filters.type).append("' ");
+    }
+    if (filters.category != null) {
+      sb.append("WHERE category = '").append(filters.category).append("' ");
+    }
+    sb.append(";");
+
+    return sb.toString();
+  }
 }

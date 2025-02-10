@@ -15,18 +15,17 @@ public class Router implements Action<Chain> {
   public void execute(Chain chain) throws Exception {
     chain
         .all(RequestLogger.ncsa())
-        .all(new CookieHandler())
-        .prefix("api", apiChain -> apiChain
-            .prefix("file", fileChain -> fileChain
-                .path(":name", nameCtx -> nameCtx.byMethod(m -> m
-                    .get(new GetFileHandler())
-                    .patch(new PatchFileHandler())
-                    .delete(new DeleteFileHandler())))
-                .post(new PostFileHandler())
-            )
-            .get("search", new SearchHandler())
-            .notFound()
+        .prefix("file", fileChain -> fileChain
+            .all(new CookieHandler())
+            .path(":name", nameCtx -> nameCtx.byMethod(m -> m
+                .get(new GetFileHandler())
+                .patch(new PatchFileHandler())
+                .delete(new DeleteFileHandler())))
+            .post(new PostFileHandler())
         )
+        .prefix("search", searchChain -> searchChain
+            .get(new SearchHandler()))
+        .notFound()
         .all(Handlers.clientError(400));
   }
 

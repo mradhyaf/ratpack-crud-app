@@ -21,7 +21,13 @@ public class SearchHandler implements Handler {
       return;
     }
 
-    ctx.notFound();
+    FileInfo filters = new FileInfo();
+    filters.name = query.get("name");
+    filters.type = query.get("type");
+    filters.category = query.get("category");
+
+    List<FileInfo> fileInfos = db.selectFilesWhere(filters);
+    ctx.render(Jackson.json(fileInfos));
   }
 
 }

@@ -8,7 +8,6 @@ import ratpack.core.form.Form;
 import ratpack.core.form.UploadedFile;
 import ratpack.core.handling.Context;
 import ratpack.core.handling.Handler;
-import ratpack.core.http.Request;
 import ratpack.core.http.Status;
 import ratpack.exec.Promise;
 
@@ -16,10 +15,11 @@ public class PostFileHandler implements Handler {
 
   @Override
   public void handle(Context ctx) throws Exception {
-    Request req = ctx.getRequest();
+    String contentType = ctx.getRequest().getContentType().getType();
 
-    if (!req.getContentType().getType().equalsIgnoreCase("multipart/form-data")) {
-      ctx.getResponse().status(Status.BAD_REQUEST).send();
+    if (contentType == null || !contentType.equalsIgnoreCase("multipart/form-data")) {
+      ctx.getResponse().status(Status.BAD_REQUEST)
+         .send("{ \"message\" : \"request is not multipart/form-data\"}");
       return;
     }
 
@@ -29,9 +29,15 @@ public class PostFileHandler implements Handler {
     Promise<Form> formPromise = ctx.parse(Form.class);
     formPromise.then(form -> {
       UploadedFile file = form.file("file");
+      if (file == null) {
+        // TODO: write a message
+        ctx.getResponse().status(Status.BAD_REQUEST).send("{ \"message\" : \"file is missing\"}");
+        return;
+      }
+
       FileInfo fileInfo = fm.createFile(file.getFileName(), file.getBytes());
       if (fileInfo == null) {
-        ctx.getResponse().status(Status.CONFLICT).send("{ \"message\" : \"file already exists\"}");
+        ctx.getResponse().status(Status.CONFLICT).send("{ \"message\" : \"fail to store file\"}");
         return;
       }
 

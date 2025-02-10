@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.core.service.Service;
@@ -21,8 +20,8 @@ public class FileManager implements Service {
 
   private final Path root;
 
-  public FileManager(String path) throws FileException {
-    root = Paths.get(path);
+  public FileManager(Path path) throws FileException {
+    root = path.resolve("files");
 
     try {
       LOGGER.debug("creating a file store in {}", root.toAbsolutePath());
@@ -39,24 +38,23 @@ public class FileManager implements Service {
 
   @Override
   public void onStop(StopEvent event) throws Exception {
-    try (DirectoryStream<Path> dir = Files.newDirectoryStream(root)) {
-      dir.forEach(path -> {
-        try {
-          Files.deleteIfExists(path);
-        } catch (IOException e) {
-          LOGGER.error("fail to cleanup files");
-        }
-      });
-      Files.deleteIfExists(root);
-    } catch (Exception e) {
-      LOGGER.error("fail to cleanup dir");
-      throw new FileException("unable to cleanup files");
-    }
+//    try (DirectoryStream<Path> dir = Files.newDirectoryStream(root)) {
+//      dir.forEach(path -> {
+//        try {
+//          Files.deleteIfExists(path);
+//        } catch (IOException e) {
+//          LOGGER.error("fail to cleanup files");
+//        }
+//      });
+//      Files.deleteIfExists(root);
+//    } catch (Exception e) {
+//      LOGGER.error("fail to cleanup dir");
+//      throw new FileException("unable to cleanup files");
+//    }
   }
 
   /**
-   *
-   * @param name name of the file to create.
+   * @param name  name of the file to create.
    * @param bytes byte array of the file contents.
    * @return {@link FileInfo} describing the created file.
    */
@@ -81,7 +79,6 @@ public class FileManager implements Service {
   }
 
   /**
-   *
    * @param name name of the file to retrieve.
    * @return {@link Path} of the file if it exists, {@literal null} otherwise.
    */
@@ -97,7 +94,6 @@ public class FileManager implements Service {
   }
 
   /**
-   *
    * @param name name of the file to delete.
    * @return {@literal true} if the deletion is successful, {@literal false} otherwise.
    */

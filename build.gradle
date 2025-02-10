@@ -1,21 +1,12 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'io.ratpack:ratpack-gradle:2.0.0-rc-1'
-    }
-}
-
 plugins {
     id 'java'
+    id 'application'
+    id 'io.ratpack.ratpack-java' version '2.0.0-rc-1'
+    id 'idea'
 }
 
 group = 'id.mradhyaf'
 version = '1.0-SNAPSHOT'
-
-apply plugin: 'io.ratpack.ratpack-java'
-apply plugin: 'idea'
 
 repositories {
     mavenCentral()
@@ -26,6 +17,16 @@ dependencies {
     implementation 'org.xerial:sqlite-jdbc:3.49.0.0'
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+application {
+    mainClass = 'Main'
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'Main'
+    }
 }
 
 test {
