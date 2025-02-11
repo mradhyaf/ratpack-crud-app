@@ -5,6 +5,7 @@ import file.FileInfo;
 import ratpack.core.handling.Context;
 import ratpack.core.handling.Handler;
 import ratpack.core.http.Status;
+import ratpack.core.jackson.Jackson;
 import ratpack.exec.Promise;
 
 public class PatchFileHandler implements Handler {
@@ -13,15 +14,18 @@ public class PatchFileHandler implements Handler {
   public void handle(Context ctx) throws Exception {
     String name = ctx.getPathTokens().get("name");
     Database db = ctx.get(Database.class);
+    ResponseBuilder rb = new ResponseBuilder();
 
     FileInfo fileInfo = db.selectFileByName(name);
     if (fileInfo == null) {
-      ctx.getResponse().status(Status.NOT_FOUND).send();
+      ctx.getResponse().status(Status.NOT_FOUND);
+      ctx.render(Jackson.json(rb.setMessage("file not found")));
       return;
     }
 
     if (!ctx.get(Auth.class).uid.equals(fileInfo.getOwner())) {
       ctx.getResponse().status(Status.UNAUTHORIZED).send();
+      ctx.render(Jackson.json(rb.setMessage("unauthorized to modify file")));
       return;
     }
 
@@ -32,10 +36,14 @@ public class PatchFileHandler implements Handler {
 
       if (updates == 0) {
         ctx.getResponse().status(Status.INTERNAL_SERVER_ERROR).send();
+        ctx.render(Jackson.json(rb.setMessage("uh oh. something went wrong")));
         return;
       }
 
-      ctx.getResponse().status(Status.OK).send();
+      rb.setMessage("file updated");
+      rb.setFileInfo(fileInfo);
+      ctx.getResponse().status(Status.OK);
+      ctx.render(Jackson.json(rb));
     });
   }
 

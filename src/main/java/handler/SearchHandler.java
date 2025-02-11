@@ -25,6 +25,7 @@ public class SearchHandler implements Handler {
     filters.name = query.get("name");
     filters.type = query.get("type");
     filters.category = query.get("category");
+    filters.description = query.get("description");
 
     List<FileInfo> fileInfos = db.selectFilesWhere(filters);
     ctx.render(Jackson.json(fileInfos));

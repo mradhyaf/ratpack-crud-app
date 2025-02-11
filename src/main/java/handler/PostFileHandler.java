@@ -9,6 +9,7 @@ import ratpack.core.form.UploadedFile;
 import ratpack.core.handling.Context;
 import ratpack.core.handling.Handler;
 import ratpack.core.http.Status;
+import ratpack.core.jackson.Jackson;
 import ratpack.exec.Promise;
 
 public class PostFileHandler implements Handler {
@@ -16,10 +17,12 @@ public class PostFileHandler implements Handler {
   @Override
   public void handle(Context ctx) throws Exception {
     String contentType = ctx.getRequest().getContentType().getType();
+    ResponseBuilder rb = new ResponseBuilder();
 
     if (contentType == null || !contentType.equalsIgnoreCase("multipart/form-data")) {
-      ctx.getResponse().status(Status.BAD_REQUEST)
-         .send("{ \"message\" : \"request is not multipart/form-data\"}");
+      ctx.getResponse().status(Status.BAD_REQUEST);
+      rb.setMessage("request must be multipart/form-data");
+      ctx.render(Jackson.json(rb));
       return;
     }
 
@@ -30,14 +33,17 @@ public class PostFileHandler implements Handler {
     formPromise.then(form -> {
       UploadedFile file = form.file("file");
       if (file == null) {
-        // TODO: write a message
-        ctx.getResponse().status(Status.BAD_REQUEST).send("{ \"message\" : \"file is missing\"}");
+        ctx.getResponse().status(Status.BAD_REQUEST);
+        rb.setMessage("missing file from the request");
+        ctx.render(Jackson.json(rb));
         return;
       }
 
       FileInfo fileInfo = fm.createFile(file.getFileName(), file.getBytes());
       if (fileInfo == null) {
-        ctx.getResponse().status(Status.CONFLICT).send("{ \"message\" : \"fail to store file\"}");
+        ctx.getResponse().status(Status.CONFLICT);
+        rb.setMessage("file with that name already exists");
+        ctx.render(Jackson.json(rb));
         return;
       }
 
@@ -50,10 +56,16 @@ public class PostFileHandler implements Handler {
 
       int numInserts = db.insertFile(fileInfo);
       if (numInserts == 0) {
-        ctx.getResponse().status(Status.INTERNAL_SERVER_ERROR).send();
+        ctx.getResponse().status(Status.INTERNAL_SERVER_ERROR);
+        rb.setMessage("uh oh. something went wrong");
+        ctx.render(Jackson.json(rb));
+
         fm.removeFile(file.getFileName());
       } else {
-        ctx.getResponse().status(Status.OK).send(Integer.toString(numInserts));
+        ctx.getResponse().status(Status.OK);
+        rb.setMessage("file uploaded");
+        rb.setFileInfo(fileInfo);
+        ctx.render(Jackson.json(rb));
       }
     });
   }

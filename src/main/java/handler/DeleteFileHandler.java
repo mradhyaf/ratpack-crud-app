@@ -3,15 +3,12 @@ package handler;
 import db.Database;
 import file.FileInfo;
 import file.FileManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ratpack.core.handling.Context;
 import ratpack.core.handling.Handler;
 import ratpack.core.http.Status;
+import ratpack.core.jackson.Jackson;
 
 public class DeleteFileHandler implements Handler {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(DeleteFileHandler.class);
 
   @Override
   public void handle(Context ctx) throws Exception {
@@ -19,16 +16,17 @@ public class DeleteFileHandler implements Handler {
 
     Database db = ctx.get(Database.class);
     FileInfo fileInfo = db.selectFileByName(name);
-    LOGGER.debug("fileInfo={}", fileInfo);
+    ResponseBuilder resBody = new ResponseBuilder();
 
     if (fileInfo == null) {
-      LOGGER.info("file {} not found", name);
-      ctx.getResponse().status(Status.NOT_FOUND).send();
+      ctx.getResponse().status(Status.NOT_FOUND);
+      ctx.render(Jackson.json(resBody.setMessage("file not found")));
       return;
     }
 
     if (!ctx.get(Auth.class).uid.equals(fileInfo.getOwner())) {
       ctx.getResponse().status(Status.UNAUTHORIZED).send();
+      ctx.render(Jackson.json(resBody.setMessage("unauthorized to modify file")));
       return;
     }
 
@@ -37,11 +35,15 @@ public class DeleteFileHandler implements Handler {
     int rowsDeleted = db.deleteFileByName(fileInfo.name);
 
     if (!fileRemoved || rowsDeleted == 0) {
-      ctx.getResponse().status(Status.INTERNAL_SERVER_ERROR).send();
+      ctx.getResponse().status(Status.INTERNAL_SERVER_ERROR);
+      ctx.render(Jackson.json(resBody.setMessage("uh oh. something went wrong")));
       return;
     }
 
-    ctx.getResponse().status(Status.OK).send();
+    resBody.setMessage("file deleted");
+    resBody.setFileInfo(fileInfo);
+    ctx.getResponse().status(Status.OK);
+    ctx.render(Jackson.json(resBody));
   }
 
 }

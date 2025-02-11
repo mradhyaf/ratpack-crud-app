@@ -30,4 +30,4 @@ This app consists of 3 components, shown by the image below.
 ## 3. API Reference
 
 The reference to the API is available
-through [Postman](https://www.postman.com/docking-module-engineer-95800223/public/collection/04qknt9/ratpack-crud-app).
+through [Postman](https://www.postman.com/docking-module-engineer-95800223/workspace/public/collection/41979206-dca4b294-4d0c-49de-8eed-a1bb58e94db0?action=share&creator=41979206).
