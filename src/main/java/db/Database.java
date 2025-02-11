@@ -81,7 +81,7 @@ public class Database implements Service {
         row.name = result.getString("name");
         row.type = result.getString("type");
         row.category = result.getString("category");
-        row.owner = result.getString("owner");
+        row.setOwner(result.getString("owner"));
         row.description = result.getString("description");
         response.add(row);
       }
@@ -100,8 +100,10 @@ public class Database implements Service {
    */
   public List<FileInfo> selectFilesWhere(FileInfo filters) {
     try (Statement stmt = dbConn.createStatement()) {
-      ResultSet result = stmt.executeQuery(SqlQueries.selectFileWhere(filters));
-      LOGGER.debug("select files where..., found {} row(s)", result.getFetchSize());
+      String query = SqlQueries.selectFileWhere(filters);
+      ResultSet result = stmt.executeQuery(query);
+      System.out.println(query);
+      LOGGER.info("select files where..., found {} row(s)", result.getFetchSize());
 
       ArrayList<FileInfo> response = new ArrayList<>();
       while (result.next()) {
@@ -109,7 +111,7 @@ public class Database implements Service {
         row.name = result.getString("name");
         row.type = result.getString("type");
         row.category = result.getString("category");
-        row.owner = result.getString("owner");
+        row.setOwner(result.getString("owner"));
         row.description = result.getString("description");
         response.add(row);
       }
@@ -139,7 +141,7 @@ public class Database implements Service {
       row.name = result.getString("name");
       row.type = result.getString("type");
       row.category = result.getString("category");
-      row.owner = result.getString("owner");
+      row.setOwner(result.getString("owner"));
       row.description = result.getString("description");
 
       return row;
@@ -158,7 +160,7 @@ public class Database implements Service {
       stmt.setString(1, file.name);
       stmt.setString(2, file.type);
       stmt.setString(3, file.category);
-      stmt.setString(4, file.owner);
+      stmt.setString(4, file.getOwner());
       stmt.setString(5, file.description);
 
       int rows = stmt.executeUpdate();
@@ -182,7 +184,7 @@ public class Database implements Service {
       stmt.setString(1, file.name);
       stmt.setString(2, file.type);
       stmt.setString(3, file.category);
-      stmt.setString(4, file.owner);
+      stmt.setString(4, file.getOwner());
       stmt.setString(5, file.description);
 
       int rows = stmt.executeUpdate();

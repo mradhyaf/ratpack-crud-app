@@ -14,8 +14,6 @@ public class CookieHandler implements Handler {
       uid = UUID.randomUUID().toString();
       ctx.getResponse().cookie("uid", uid);
     }
-//    ctx.getResponse().getHeaders().add("access-control-allow-origin", "*");
-//    ctx.getResponse().getHeaders().add("access-control-allow-methods", "get,post,patch,delete");
     ctx.next(Registry.single(new Auth(uid)));
   }
 

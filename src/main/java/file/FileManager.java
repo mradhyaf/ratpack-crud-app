@@ -1,7 +1,6 @@
 package file;
 
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.slf4j.Logger;
@@ -114,36 +113,35 @@ public class FileManager implements Service {
   private FileInfo extractFileInfo(Path filepath) {
     FileInfo info = new FileInfo();
     info.name = filepath.getFileName().toString();
-
-    try {
-      info.type = getFileType(filepath);
-      info.category = getFileCategory(filepath);
-    } catch (Exception e) {
-      LOGGER.warn("unable to complete file info extraction");
-    }
+    info.type = getFileType(filepath);
+    info.category = getFileCategory(info.type);
 
     return info;
   }
 
   private static String getFileType(Path filepath) {
-    // TODO: implement
-    return "unknown";
-//    return Files.probeContentType(filepath);
+    // Possible extension: use Files::probeContentType
+    String filename = filepath.getFileName().toString();
+    String filetype = filename.substring(filename.lastIndexOf('.') + 1);
+    return filetype.isBlank() ? "unknown" : filetype;
   }
 
-  private static String getFileCategory(Path filepath) {
-    // TODO: implement
-    return "others";
-//    switch (filetype) {
-//      case "mp3":
-//        return "music";
-//      case "mkv":
-//        return "videos";
-//      case "png":
-//        return "pictures";
-//      default:
-//        return "others";
-//    }
+  private static String getFileCategory(String filetype) {
+    if (filetype.equalsIgnoreCase("unknown")) {
+      return "others";
+    }
+
+    return switch (filetype) {
+      case "mp3", "wav", "flac" -> "music";
+      case "mp4", "mkv", "avi", "mov" -> "video";
+      case "png", "jpeg", "jpg", "gif", "bmp" -> "picture";
+      case "doc", "docx", "odt", "pdf", "txt", "md", "rtf" -> "document";
+      case "xls", "xlsx", "ods" -> "spreadsheet";
+      case "ppt", "pptx" -> "presentation";
+      case "zip", "rar", "tar", "gz" -> "archive";
+      case "html", "htm" -> "webpage";
+      default -> "others";
+    };
   }
 
 }

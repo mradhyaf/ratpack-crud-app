@@ -1,16 +1,21 @@
 package file;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class FileInfo {
+
+  @JsonIgnore
+  private String owner;
 
   public String name;
   public String type;
   public String category;
-  public String owner;
   public String description;
 
   @JsonCreator
@@ -18,13 +23,11 @@ public class FileInfo {
       @JsonProperty("name") String name,
       @JsonProperty("type") String type,
       @JsonProperty("category") String category,
-      @JsonProperty("owner") String owner,
       @JsonProperty("description") String description
   ) {
     this.name = name;
     this.type = type;
     this.category = category;
-    this.owner = owner;
     this.description = description;
   }
 
@@ -40,7 +43,6 @@ public class FileInfo {
           "name='" + name + '\'' +
           ", type='" + type + '\'' +
           ", category='" + category + '\'' +
-          ", owner='" + owner + '\'' +
           ", description='" + description + '\'' +
           '}';
     }
@@ -63,13 +65,17 @@ public class FileInfo {
       this.category = other.category;
     }
 
-    if (other.owner != null && !other.owner.isEmpty()) {
-      this.owner = other.owner;
-    }
-
     if (other.description != null && !other.description.isEmpty()) {
       this.description = other.description;
     }
+  }
+
+  public String getOwner() {
+    return owner;
+  }
+
+  public void setOwner(String owner) {
+    this.owner = owner;
   }
 
 }

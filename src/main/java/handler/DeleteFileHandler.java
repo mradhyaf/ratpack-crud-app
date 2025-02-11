@@ -27,7 +27,7 @@ public class DeleteFileHandler implements Handler {
       return;
     }
 
-    if (!fileInfo.owner.equals(ctx.get(Auth.class).uid)) {
+    if (!ctx.get(Auth.class).uid.equals(fileInfo.getOwner())) {
       ctx.getResponse().status(Status.UNAUTHORIZED).send();
       return;
     }

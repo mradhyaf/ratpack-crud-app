@@ -52,14 +52,30 @@ public class SqlQueries {
 
   public static String selectFileWhere(FileInfo filters) {
     StringBuilder sb = new StringBuilder("SELECT * FROM files WHERE ");
+    boolean isFirst = true;
     if (filters.name != null) {
-      sb.append("WHERE name LIKE %").append(filters.name).append("% ");
+      sb.append("name LIKE '%").append(filters.name).append("%' ");
+      isFirst = false;
     }
     if (filters.type != null) {
-      sb.append("WHERE type = '").append(filters.type).append("' ");
+      if (!isFirst) {
+        sb.append("AND ");
+      }
+      sb.append("type = '").append(filters.type).append("' ");
+      isFirst = false;
     }
     if (filters.category != null) {
-      sb.append("WHERE category = '").append(filters.category).append("' ");
+      if (!isFirst) {
+        sb.append("AND ");
+      }
+      sb.append("category = '").append(filters.category).append("' ");
+      isFirst = false;
+    }
+    if (filters.description != null) {
+      if (!isFirst) {
+        sb.append("AND ");
+      }
+      sb.append("description like '%").append(filters.description).append("%' ");
     }
     sb.append(";");
 

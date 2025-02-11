@@ -20,6 +20,11 @@ public class PatchFileHandler implements Handler {
       return;
     }
 
+    if (!ctx.get(Auth.class).uid.equals(fileInfo.getOwner())) {
+      ctx.getResponse().status(Status.UNAUTHORIZED).send();
+      return;
+    }
+
     Promise<FileInfo> reqBody = ctx.parse(FileInfo.class);
     reqBody.then(newFileInfo -> {
       fileInfo.extend(newFileInfo);

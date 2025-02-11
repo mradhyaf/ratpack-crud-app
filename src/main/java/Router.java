@@ -1,4 +1,5 @@
 import handler.CookieHandler;
+import handler.CorsHandler;
 import handler.DeleteFileHandler;
 import handler.GetFileHandler;
 import handler.PatchFileHandler;
@@ -15,6 +16,7 @@ public class Router implements Action<Chain> {
   public void execute(Chain chain) throws Exception {
     chain
         .all(RequestLogger.ncsa())
+        .all(new CorsHandler())
         .prefix("file", fileChain -> fileChain
             .all(new CookieHandler())
             .path(":name", nameCtx -> nameCtx.byMethod(m -> m

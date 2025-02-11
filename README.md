@@ -10,15 +10,7 @@ This is a backend application for file sharing built with Java, Ratpack, and SQL
 
 ## 1. Quick Start
 
-Build this jar with the gradle wrapper. Then run with a java runtime. The default build location is
-`build/libs/`
-
-```shell
-$ ./gradlew jar
-$ java -jar build/libs/ratpack-crud-app-1.0-SNAPSHOT.jar
-```
-
-or, immediately run
+Run with gradle wrapper:
 
 ```shell
 $ ./gradlew run
@@ -26,12 +18,12 @@ $ ./gradlew run
 
 ## 2. System Design
 
-This app consists of 3 components, described by the image below.
+This app consists of 3 components, shown by the image below.
 ![diagram](./docs/images/diagram.png)
 
 ### Summary of each component:
 
-1. Server: a ratpack server that handles the user requests.
+1. Server: a ratpack server that routes and handles the user requests.
 2. Database: interfaces with sqlite through JDBC (Java Database Connectivity).
 3. FileManager: manages file creation, deletion.
 

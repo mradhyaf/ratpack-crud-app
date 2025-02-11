@@ -45,7 +45,7 @@ public class PostFileHandler implements Handler {
       if (jsonInfo != null) {
         FileInfo parsedInfo = new ObjectMapper().readValue(jsonInfo, FileInfo.class);
         fileInfo.extend(parsedInfo);
-        fileInfo.owner = ctx.get(Auth.class).uid;
+        fileInfo.setOwner(ctx.get(Auth.class).uid);
       }
 
       int numInserts = db.insertFile(fileInfo);
